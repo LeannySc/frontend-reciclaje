@@ -1,111 +1,105 @@
+import { useState } from "react";
+import Registro from "./components/Registro";
+import Login from "./components/Login";
+import Perfil from "./components/Perfil";
 import Mapa from "./components/Mapa";
-import { Recycle, TrendingUp, Wallet, MapPin, Award } from "lucide-react";
+import { Recycle, LogOut, Settings, Wallet, MapPin } from "lucide-react";
 
 function App() {
+  const [usuario, setUsuario] = useState(null); // Billetera de usuario
+  const [modo, setModo] = useState("LOGIN"); // LOGIN, REGISTRO, DASHBOARD
+  const [verPerfil, setVerPerfil] = useState(false);
+
+  // Manejo de Iniciar Sesion (UML)
+  const loginExitoso = (u) => {
+    setUsuario(u);
+    setModo("DASHBOARD");
+  };
+
+  // Manejo de Cerrar Sesion (UML)
+  const salir = () => {
+    setUsuario(null);
+    setModo("LOGIN");
+  };
+
+  // RENDER CONDICIONAL DE VISTAS
+  if (modo === "LOGIN")
+    return (
+      <div className="h-screen bg-green-600 flex items-center justify-center bg-[url('https://www.toptal.com/designers/subtlepatterns/patterns/double-bubble-outline.png')] p-4">
+        <Login
+          alLoguear={loginExitoso}
+          irARegistro={() => setModo("REGISTRO")}
+        />
+      </div>
+    );
+
+  if (modo === "REGISTRO")
+    return (
+      <div className="h-screen bg-slate-900 flex items-center justify-center p-4">
+        <Registro
+          alRegistrar={loginExitoso}
+          irALogin={() => setModo("LOGIN")}
+        />
+      </div>
+    );
+
+  // VISTA FINAL: EL DASHBOARD CON MAPA
   return (
-    <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
-      {/* HEADER TIPO STARTUP */}
-      <header className="bg-white border-b border-green-100 p-5 shadow-sm sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <div className="bg-green-600 p-1.5 rounded-lg shadow-inner">
-              <Recycle className="text-white" size={24} />
-            </div>
-            <h1 className="text-2xl font-black tracking-tighter text-slate-800">
-              PLASTI<span className="text-green-600">USOS</span>
-            </h1>
-          </div>
-          <div className="hidden md:block">
-            <span className="text-sm font-medium text-slate-400 bg-slate-100 px-4 py-1.5 rounded-full border border-slate-200">
-              📍 Sede Actual: Popayán, Cauca
-            </span>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-slate-50 font-sans">
+      {verPerfil && (
+        <Perfil
+          usuario={usuario}
+          alActualizar={(nuevoU) => setUsuario(nuevoU)}
+          alCerrar={() => setVerPerfil(false)}
+        />
+      )}
 
-      {/* CONTENIDO PRINCIPAL */}
-      <main className="max-w-7xl mx-auto p-6 md:p-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* PANEL LATERAL IZQUIERDO */}
+      <nav className="bg-white p-5 border-b border-green-100 sticky top-0 z-50 shadow-sm flex justify-between items-center px-10">
+        <div className="flex items-center gap-2">
+          <Recycle className="text-green-600" />
+          <span className="font-black text-slate-800 tracking-tighter">
+            PLASTIUSOS
+          </span>
+        </div>
+
+        <div className="flex gap-4">
+          <button
+            onClick={() => setVerPerfil(true)}
+            className="flex items-center gap-1 text-xs font-black uppercase text-slate-500 hover:text-green-600"
+          >
+            <Settings size={14} /> Perfil
+          </button>
+          <button
+            onClick={salir}
+            className="flex items-center gap-1 text-xs font-black uppercase text-red-500"
+          >
+            <LogOut size={14} /> Salir
+          </button>
+        </div>
+      </nav>
+
+      <main className="max-w-7xl mx-auto p-10 grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="space-y-6">
-          {/* TARJETA DE BILLETERA (Tu ID 1 del Backend) */}
-          <div className="bg-white p-8 rounded-[2.5rem] shadow-2xl shadow-green-900/10 border border-white hover:border-green-100 transition-all duration-300">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="bg-green-100 p-2 rounded-xl">
-                <Wallet className="text-green-600" size={20} />
-              </div>
-              <h3 className="font-bold text-slate-400 text-xs uppercase tracking-widest">
-                Mi Saldo Eco
-              </h3>
+          <div className="bg-white p-8 rounded-[2.5rem] shadow-xl border">
+            <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+              <Wallet size={12} /> Mi Billetera
+            </h3>
+            <div className="text-2xl font-bold mt-2 text-slate-800 line-clamp-1">
+              {usuario.nombre}
             </div>
-
-            <div className="flex flex-col mb-6">
-              <div className="flex items-baseline">
-                <span className="text-6xl font-black tracking-tight text-slate-800">
-                  1920
-                </span>
-                <span className="ml-2 text-lg font-bold text-green-600">
-                  PTS
-                </span>
-              </div>
-              <p className="text-slate-400 text-sm mt-2 leading-relaxed">
-                Has recolectado{" "}
-                <strong className="text-slate-700">15.4 kg</strong> de material
-                esta semana.
-              </p>
+            <div className="text-7xl font-black text-slate-800 mt-2 flex items-baseline gap-2">
+              {usuario.saldoPuntos ?? 0}{" "}
+              <span className="text-xl text-green-600 uppercase font-black">
+                pts
+              </span>
             </div>
-
-            <button className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 rounded-2xl shadow-lg shadow-green-200 transition-all active:scale-95 flex justify-center items-center gap-2 group">
-              <Award
-                size={20}
-                className="group-hover:rotate-12 transition-transform"
-              />
-              CANJEAR MARAVILLA
-            </button>
-          </div>
-
-          {/* TARJETA DE INFO EXTRA */}
-          <div className="bg-gradient-to-br from-green-600 to-green-800 p-6 rounded-[2rem] text-white shadow-xl relative overflow-hidden">
-            <TrendingUp
-              size={80}
-              className="absolute -bottom-4 -right-4 opacity-10 rotate-12"
-            />
-            <h4 className="font-bold text-lg mb-1 italic">Día de Campaña</h4>
-            <p className="text-green-100 text-sm opacity-90">
-              Hoy tus kilos en el Parque Caldas valen x2.
-            </p>
           </div>
         </div>
 
-        {/* CONTENEDOR DEL MAPA (2/3 de la pantalla) */}
-        <div className="lg:col-span-2">
-          <div className="bg-white p-4 rounded-[2.5rem] shadow-2xl shadow-slate-200 border border-white h-full flex flex-col">
-            <div className="flex items-center justify-between mb-5 px-3">
-              <div className="flex items-center gap-2">
-                <MapPin className="text-green-600" size={24} />
-                <h3 className="font-bold text-lg">
-                  Puntos de Recogida Cercanos
-                </h3>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="flex h-2 w-2 rounded-full bg-green-500 animate-pulse"></span>
-                <span className="text-xs font-bold text-slate-400 uppercase">
-                  Activos ahora: 1
-                </span>
-              </div>
-            </div>
-
-            {/* AREA DEL MAPA - Aseguramos altura para que no se borre */}
-            <div className="flex-1 min-h-[500px] bg-slate-50 rounded-[1.8rem] overflow-hidden border border-slate-100 shadow-inner">
-              <Mapa />
-            </div>
-          </div>
+        <div className="lg:col-span-2 rounded-[2.5rem] h-[550px] overflow-hidden shadow-2xl shadow-green-900/10 border-4 border-white">
+          <Mapa />
         </div>
       </main>
-
-      {/* FOOTER DISCRETO */}
-      <footer className="max-w-7xl mx-auto p-10 text-center text-slate-300 text-sm font-medium">
-        PLATIUSOS 2025 • PROYECTO UNIVERSITARIO POPAYÁN
-      </footer>
     </div>
   );
 }
