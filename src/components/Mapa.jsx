@@ -30,14 +30,23 @@ const Mapa = () => {
         style={{ height: "100%", width: "100%" }}
       >
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-
-        {puntos.map((p) => (
-          <Marker key={p.id} position={[2.4419, -76.6063]}>
-            <Popup>
-              <strong>{p.nombre}</strong> <br /> {p.direccion}
-            </Popup>
-          </Marker>
-        ))}
+        // En el mapeo de los puntos dentro del return:
+        {puntos.map(
+          (p) =>
+            // Solo mostramos el marcador si tiene coordenadas
+            p.latitud &&
+            p.longitud && (
+              <Marker key={p.id} position={[p.latitud, p.longitud]}>
+                <Popup>
+                  <div className="p-2">
+                    <strong className="text-green-700">{p.nombre}</strong>{" "}
+                    <br />
+                    <span className="text-gray-500 text-sm">{p.direccion}</span>
+                  </div>
+                </Popup>
+              </Marker>
+            ),
+        )}
       </MapContainer>
     </div>
   );
