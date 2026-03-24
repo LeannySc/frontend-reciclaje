@@ -1,6 +1,7 @@
 import { useState } from "react";
 import axios from "axios";
 import { LogIn, Mail, Lock, Loader2 } from "lucide-react";
+import { toast } from "sonner"; // Importar Toasts
 
 const Login = ({ alLoguear, irARegistro }) => {
   const [datos, setDatos] = useState({ correo: "", contrasena: "" });
@@ -10,16 +11,22 @@ const Login = ({ alLoguear, irARegistro }) => {
     e.preventDefault();
     setCargando(true);
     try {
-      // Llamada al endpoint que ya probamos en Postman
       const res = await axios.post(
         "http://localhost:8080/api/identidad/login",
         datos,
       );
-      alert(`¡Bienvenido de nuevo, ${res.data.nombre}!`);
-      alLoguear(res.data); // Guardamos el objeto Usuario completo
+
+      // UX Pro: Toast de éxito
+      toast.success(`Bienvenido, ${res.data.nombre}`, {
+        description: "Accediendo a tu tablero de economía circular",
+      });
+
+      setTimeout(() => alLoguear(res.data), 1000);
     } catch (err) {
       console.error(err);
-      alert("Credenciales incorrectas. Revisa tu correo y contraseña.");
+      toast.error("Fallo de Autenticación", {
+        description: "Revisa tus credenciales e intenta de nuevo.",
+      });
     } finally {
       setCargando(false);
     }

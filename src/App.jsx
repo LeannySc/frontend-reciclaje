@@ -1,31 +1,56 @@
 import { useEffect, useState } from "react";
+import axios from "axios";
+import { Toaster } from "sonner";
+import {
+  Recycle,
+  LogOut,
+  Settings,
+  User as UserIcon,
+  ChevronDown,
+  ShoppingBag,
+  History,
+  LayoutList,
+} from "lucide-react";
+
+// Componentes
 import Registro from "./components/Registro";
 import Login from "./components/Login";
 import Perfil from "./components/Perfil";
+import Catalogo from "./components/Catalogo";
 import RecicladorDashboard from "./components/RecicladorDashboard";
 import EncargadoDashboard from "./components/EncargadoDashboard";
 import AdminDashboard from "./components/AdminDashboard";
-import { Recycle, LogOut, Settings } from "lucide-react";
-import axios from "axios";
+import HistorialEco from "./components/HistorialEco";
+import MonitorBotes from "./components/MonitorBotes"; // IMPORTANTE: Crear este archivo
 
 function App() {
   const [usuario, setUsuario] = useState(null);
   const [modo, setModo] = useState("LOGIN");
   const [verPerfil, setVerPerfil] = useState(false);
+  const [verCatalogo, setVerCatalogo] = useState(false);
+  const [verHistorial, setVerHistorial] = useState(false);
+  const [verMonitor, setVerMonitor] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
-  useEffect(() => {
-    // Intenta cargar al usuario 1 al iniciar para agilizar pruebas
+  // ESTADO GLOBAL DE BOTES PARA EL RECOLECTOR
+  const [botes, setBotes] = useState([]);
+
+  // Función para refrescar botes desde cualquier parte
+  const refrescarBotes = () => {
     axios
-      .get("http://localhost:8080/api/identidad/1")
-      .then((res) => {
-        setUsuario(res.data);
-        setModo("DASHBOARD");
-      })
-      .catch((err) => {
-        console.error("Detalle del error:", err);
-        console.log("No hay sesion iniciada, mostrando login.");
-      });
-  }, []);
+      .get("http://localhost:8080/api/puntos/todos")
+      .then((res) => setBotes(res.data))
+      .catch(() => console.log("Esperando conexión con la red..."));
+  };
+
+  // Efecto de refresco automático si es Encargado
+  useEffect(() => {
+    if (usuario?.rol === "ENCARGADO") {
+      refrescarBotes();
+      const interval = setInterval(refrescarBotes, 5000);
+      return () => clearInterval(interval);
+    }
+  }, [usuario]);
 
   const loginExitoso = (u) => {
     setUsuario(u);
@@ -35,12 +60,16 @@ function App() {
   const salir = () => {
     setUsuario(null);
     setModo("LOGIN");
+    setVerPerfil(false);
+    setVerCatalogo(false);
+    setVerHistorial(false);
+    setVerMonitor(false);
   };
 
-  // --- VISTAS INICIALES ---
   if (modo === "LOGIN")
     return (
-      <div className="h-screen bg-green-600 flex items-center justify-center bg-[url('https://www.toptal.com/designers/subtlepatterns/patterns/double-bubble-outline.png')] p-4">
+      <div className="h-screen bg-green-600 flex items-center justify-center p-4">
+        <Toaster position="top-center" richColors />
         <Login
           alLoguear={loginExitoso}
           irARegistro={() => setModo("REGISTRO")}
@@ -51,6 +80,7 @@ function App() {
   if (modo === "REGISTRO")
     return (
       <div className="h-screen bg-slate-900 flex items-center justify-center p-4">
+        <Toaster position="top-center" richColors />
         <Registro
           alRegistrar={loginExitoso}
           irALogin={() => setModo("LOGIN")}
@@ -58,64 +88,155 @@ function App() {
       </div>
     );
 
-  // --- VISTA PRINCIPAL (DASHBOARD PERSONALIZADO POR UML) ---
   return (
-    <div className="min-h-screen bg-slate-50 font-sans">
+    <div className="min-h-screen bg-[#F8FAFC] font-sans text-slate-900">
+      <Toaster position="top-center" richColors />
       {verPerfil && (
         <Perfil
           usuario={usuario}
-          alActualizar={(nuevoU) => setUsuario(nuevoU)}
+          alActualizar={setUsuario}
           alCerrar={() => setVerPerfil(false)}
         />
       )}
 
-      {/* NAVBAR GLOBAL */}
-      <nav className="bg-white p-5 border-b border-green-100 sticky top-0 z-50 shadow-sm flex justify-between items-center px-10">
-        <div className="flex items-center gap-2">
-          <Recycle className="text-green-600" />
-          <span className="font-black text-slate-800 tracking-tighter uppercase">
+      {/* --- NAVBAR DINÁMICO --- */}
+      <nav className="bg-white/80 backdrop-blur-xl border-b border-slate-200 sticky top-0 z-[110] px-6 py-4 flex justify-between items-center">
+        <div
+          className="flex items-center gap-3 cursor-pointer"
+          onClick={() => {
+            setVerCatalogo(false);
+            setVerHistorial(false);
+            setVerMonitor(false);
+          }}
+        >
+          <div className="bg-green-600 p-2 rounded-xl text-white shadow-lg shadow-green-100">
+            <Recycle size={24} />
+          </div>
+          <span className="font-black text-slate-800 text-xl tracking-tighter uppercase">
             PlastiUsos
           </span>
         </div>
 
-        <div className="flex gap-4">
+        <div className="relative">
           <button
-            onClick={() => setVerPerfil(true)}
-            className="flex items-center gap-1 text-xs font-black uppercase text-slate-500 hover:text-green-600 transition-colors"
+            onClick={() => setMenuOpen(!menuOpen)}
+            className="flex items-center gap-3 bg-slate-100 p-2 pl-4 rounded-2xl border border-slate-200 hover:bg-white transition-all"
           >
-            <Settings size={14} /> Perfil
+            <span className="text-sm font-bold text-slate-700">
+              {usuario?.nombre}
+            </span>
+            <div className="bg-slate-900 p-2 rounded-xl text-white">
+              <UserIcon size={16} />
+            </div>
+            <ChevronDown
+              size={14}
+              className={`text-slate-400 transition-transform ${menuOpen ? "rotate-180" : ""}`}
+            />
           </button>
-          <button
-            onClick={salir}
-            className="flex items-center gap-1 text-xs font-black uppercase text-red-500 hover:text-red-700 transition-colors"
-          >
-            <LogOut size={14} /> Salir
-          </button>
+
+          {menuOpen && (
+            <div className="absolute right-0 mt-3 w-64 bg-white rounded-3xl shadow-2xl border border-slate-100 py-3 overflow-hidden animate-in slide-in-from-top-2">
+              <button
+                onClick={() => {
+                  setVerPerfil(true);
+                  setMenuOpen(false);
+                }}
+                className="w-full flex items-center gap-3 px-6 py-3 text-xs font-black text-slate-600 hover:bg-slate-50 transition-colors"
+              >
+                <Settings size={18} className="text-green-600" /> Mi Perfil
+              </button>
+
+              {usuario.rol === "RECICLADOR" && (
+                <>
+                  <button
+                    onClick={() => {
+                      setVerHistorial(true);
+                      setVerCatalogo(false);
+                      setMenuOpen(false);
+                    }}
+                    className="w-full flex items-center gap-3 px-6 py-3 text-xs font-black text-slate-600 hover:bg-slate-50 transition-colors"
+                  >
+                    <History size={18} className="text-orange-500" /> Huella
+                    Ecológica
+                  </button>
+                  <button
+                    onClick={() => {
+                      setVerCatalogo(true);
+                      setVerHistorial(false);
+                      setMenuOpen(false);
+                    }}
+                    className="w-full flex items-center gap-3 px-6 py-3 text-xs font-black text-slate-600 hover:bg-slate-50 transition-colors"
+                  >
+                    <ShoppingBag size={18} className="text-blue-500" /> Ver
+                    Maravillas
+                  </button>
+                </>
+              )}
+
+              {usuario.rol === "ENCARGADO" && (
+                <button
+                  onClick={() => {
+                    setVerMonitor(true);
+                    setMenuOpen(false);
+                  }}
+                  className="w-full flex items-center gap-3 px-6 py-3 text-xs font-black text-slate-600 hover:bg-slate-50 transition-colors"
+                >
+                  <LayoutList size={18} className="text-green-600" /> Monitor de
+                  Ruta
+                </button>
+              )}
+
+              <button
+                onClick={salir}
+                className="w-full flex items-center gap-3 px-6 py-4 text-xs font-black text-red-500 hover:bg-red-50 mt-2 border-t"
+              >
+                <LogOut size={18} /> Salir del Sistema
+              </button>
+            </div>
+          )}
         </div>
       </nav>
 
-      {/* CONTENIDO DINÁMICO SEGÚN ROL DEL UML */}
-      <main className="max-w-7xl mx-auto p-10">
-        {usuario.rol === "RECICLADOR" && (
-          <RecicladorDashboard usuario={usuario} />
-        )}
-        {usuario.rol === "ENCARGADO" && (
-          <EncargadoDashboard usuario={usuario} />
-        )}
-        {usuario.rol === "ADMINISTRADOR" && (
-          <div className="bg-white p-20 rounded-[4rem] shadow-xl border-4 border-dashed border-slate-100 text-center">
-            <h2 className="text-4xl font-black text-slate-300">
-              MODO ADMINISTRADOR
-            </h2>
-            <p className="text-slate-400 mt-2 font-bold uppercase tracking-widest">
-              Lógica de Reportes en construcción 🚧
-            </p>
+      {/* --- RENDERIZADO DE MÓDULOS --- */}
+      <main className="max-w-[1400px] mx-auto p-6 lg:p-10">
+        {verCatalogo ? (
+          <Catalogo
+            usuario={usuario}
+            alRegresar={() => setVerCatalogo(false)}
+            alCanjeExitoso={setUsuario}
+          />
+        ) : verHistorial ? (
+          <HistorialEco
+            usuario={usuario}
+            alRegresar={() => setVerHistorial(false)}
+          />
+        ) : verMonitor ? (
+          <MonitorBotes
+            botes={botes}
+            usuarioId={usuario.id}
+            alRegresar={() => setVerMonitor(false)}
+            refrescar={refrescarBotes}
+          />
+        ) : (
+          <div className="animate-in fade-in duration-700">
+            {usuario.rol === "RECICLADOR" && (
+              <RecicladorDashboard
+                usuario={usuario}
+                irACatalogo={() => setVerCatalogo(true)}
+                irAHistorial={() => setVerHistorial(true)}
+              />
+            )}
+            {usuario.rol === "ENCARGADO" && (
+              <EncargadoDashboard
+                usuario={usuario}
+                botes={botes}
+                irAMonitor={() => setVerMonitor(true)}
+              />
+            )}
+            {usuario.rol === "ADMINISTRADOR" && (
+              <AdminDashboard usuario={usuario} />
+            )}
           </div>
-        )}
-        /Rol administrador en construcción, se muestra placeholder mientras se
-        desarrolla la lógica de reportes y gestión de usuarios./
-        {usuario.rol === "ADMINISTRADOR" && (
-          <AdminDashboard usuario={usuario} />
         )}
       </main>
     </div>

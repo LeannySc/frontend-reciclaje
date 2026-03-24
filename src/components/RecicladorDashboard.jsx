@@ -1,113 +1,114 @@
-import { Wallet, MapPin, Award, History, TrendingUp } from "lucide-react";
+import {
+  Wallet,
+  MapPin,
+  Award,
+  History,
+  TrendingUp,
+  ScanQrCode,
+  Eye,
+  Info,
+} from "lucide-react";
 import Mapa from "./Mapa";
 
-const RecicladorDashboard = ({ usuario }) => {
-  // LÓGICA DE CÁLCULO DE PUNTOS
+const RecicladorDashboard = ({ usuario, irACatalogo, irAHistorial }) => {
+  // Calculamos puntos de la misma forma industrial
   const puntosTotales =
-    usuario.historialEntrega?.reduce((acc, entrega) => {
-      // Sumamos si el estado es VALIDADA o si por error de prueba quedó en null pero tiene puntos
-      return entrega.estado === "VALIDADA" || entrega.estado === null
-        ? acc + entrega.puntosOtorgados
-        : acc;
-    }, 0) || 0;
+    usuario.historialEntrega?.reduce(
+      (acc, ent) =>
+        ent.estado === "VALIDADA" ? acc + ent.puntosOtorgados : acc,
+      0,
+    ) || 0;
 
   return (
-    <div className="animate-in fade-in duration-700">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* MI BILLETERA */}
-        <div className="space-y-6">
-          <div className="bg-white p-8 rounded-[2.5rem] shadow-xl border border-green-100 relative overflow-hidden group">
-            <TrendingUp
-              size={140}
-              className="absolute -right-10 -bottom-10 text-green-500 opacity-5 group-hover:scale-110 transition-transform"
-            />
-            <div className="flex items-center gap-3 mb-6">
-              <div className="bg-green-100 p-2 rounded-xl text-green-600">
-                <Wallet size={20} />
-              </div>
-              <h3 className="font-black text-slate-400 text-[10px] uppercase tracking-[0.2em]">
-                Billetera Eco
-              </h3>
-            </div>
-
-            {/* AQUÍ ESTABA EL ERROR: Cambiamos usuario.saldoPuntos por puntosTotales */}
-            <h2 className="text-6xl font-black text-slate-800 flex items-baseline gap-2">
-              {puntosTotales}
-              <span className="text-xl font-bold text-green-600 uppercase">
-                pts
-              </span>
-            </h2>
-
-            <p className="text-slate-400 text-xs mt-4">
-              Saldo calculado según entregas validadas
-            </p>
-          </div>
-
-          <button className="w-full bg-slate-900 hover:bg-black text-white font-black py-5 rounded-3xl shadow-xl transition-all active:scale-95 flex justify-center items-center gap-2 group">
-            <Award size={20} className="group-hover:rotate-12 transition-all" />
-            VER CATÁLOGO
-          </button>
+    <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in duration-700">
+      {/* --- SECCIÓN BALANCES (Estilo Nequi Disponible) --- */}
+      <div className="bg-slate-900 text-white p-6 rounded-[2rem] shadow-2xl relative overflow-hidden group">
+        <div className="absolute top-0 right-0 p-8 opacity-10">
+          <Wallet size={120} className="rotate-12" />
         </div>
 
-        {/* MAPA (Ubicación de Puntos) */}
-        <div className="lg:col-span-2 h-[500px] bg-white p-4 rounded-[2.5rem] shadow-2xl border-4 border-white overflow-hidden relative">
-          <div className="absolute top-8 left-8 z-10 bg-white/90 backdrop-blur px-4 py-2 rounded-2xl shadow-sm flex items-center gap-2">
-            <MapPin size={16} className="text-green-600" />
-            <span className="text-xs font-bold text-slate-700 uppercase tracking-tight">
-              Centros de Recolección Popayán
+        <div className="relative z-10 flex flex-col items-center">
+          <div className="flex items-center gap-2 text-slate-400 mb-1">
+            <span className="text-[10px] font-black uppercase tracking-[0.2em]">
+              Puntos Disponibles
+            </span>
+            <Eye size={12} className="opacity-50" />
+          </div>
+
+          <div className="flex items-baseline gap-2">
+            <span className="text-4xl font-black">
+              {puntosTotales.toLocaleString()}
+            </span>
+            <span className="text-green-400 font-bold text-xs uppercase tracking-tighter">
+              Eco Pts
             </span>
           </div>
-          <Mapa />
+        </div>
+      </div>
+
+      {/* --- GRID DE SERVICIOS (Accesos Directos) --- */}
+      <div className="grid grid-cols-3 gap-4">
+        <button
+          onClick={irACatalogo}
+          className="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm flex flex-col items-center gap-2 hover:bg-green-50 transition-all group active:scale-95"
+        >
+          <div className="bg-blue-100 p-3 rounded-2xl text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all">
+            <Award size={20} />
+          </div>
+          <span className="text-[9px] font-black text-slate-500 uppercase tracking-tight">
+            Maravillas
+          </span>
+        </button>
+
+        <button
+          onClick={() => alert("Próximamente: Cámara para Scan QR 📸")}
+          className="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm flex flex-col items-center gap-2 hover:bg-green-50 transition-all group active:scale-95"
+        >
+          <div className="bg-green-100 p-3 rounded-2xl text-green-600 group-hover:bg-green-600 group-hover:text-white transition-all">
+            <ScanQrCode size={20} />
+          </div>
+          <span className="text-[9px] font-black text-slate-500 uppercase tracking-tight">
+            Reciclar
+          </span>
+        </button>
+
+        <button
+          onClick={irAHistorial}
+          className="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm flex flex-col items-center gap-2 hover:bg-green-50 transition-all group active:scale-95"
+        >
+          <div className="bg-orange-100 p-3 rounded-2xl text-orange-600 group-hover:bg-orange-600 group-hover:text-white transition-all">
+            <History size={20} />
+          </div>
+          <span className="text-[9px] font-black text-slate-500 uppercase tracking-tight">
+            Movimientos
+          </span>
+        </button>
+      </div>
+
+      {/* --- MAPA FULL SIZE (La Joya Logística) --- */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between px-2">
+          <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+            <MapPin size={14} className="text-red-500" /> Estaciones Cercanas
+          </h3>
+          <span className="text-[9px] font-bold text-green-600 bg-green-50 px-2 py-1 rounded-full border border-green-100 uppercase">
+            Popayán Real-Time
+          </span>
         </div>
 
-        {/* TABLA DE HISTORIAL (ESTA ESTABA BIEN) */}
-        <div className="lg:col-span-3 bg-white p-8 rounded-[2.5rem] shadow-lg border border-slate-50">
-          {/* ... el resto del código del historial se mantiene igual ... */}
-          <div className="flex items-center gap-3 mb-6">
-            <History className="text-slate-400" size={20} />
-            <h3 className="font-bold text-slate-800">
-              Mi Huella Ecológica (Recientes)
-            </h3>
+        <div className="h-[450px] bg-white rounded-[2.5rem] shadow-2xl border-8 border-white overflow-hidden relative shadow-slate-200">
+          <Mapa />
+
+          {/* Tooltip flotante dentro del mapa */}
+          <div className="absolute bottom-6 left-6 right-6 z-[1000] bg-white/80 backdrop-blur-md p-4 rounded-3xl border border-white flex items-center gap-4 animate-in slide-in-from-bottom-2">
+            <div className="bg-slate-900 text-white p-2 rounded-xl">
+              <Info size={16} />
+            </div>
+            <p className="text-[10px] font-bold text-slate-700 leading-tight">
+              Busca los pines azules en el mapa para encontrar puntos de
+              recolección disponibles en la ciudad.
+            </p>
           </div>
-          {usuario.historialEntrega?.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="text-slate-400 text-[10px] uppercase tracking-widest border-b">
-                    <th className="pb-4">Fecha</th>
-                    <th className="pb-4 text-center">Puntos Ganados</th>
-                    <th className="pb-4 text-right">Estado</th>
-                  </tr>
-                </thead>
-                <tbody className="text-sm font-bold">
-                  {usuario.historialEntrega.map((ent) => (
-                    <tr
-                      key={ent.id}
-                      className="border-b border-slate-50 hover:bg-slate-50"
-                    >
-                      <td className="py-4 text-slate-800">
-                        {new Date(ent.fechaEntrega).toLocaleDateString()}
-                      </td>
-                      <td className="py-4 text-center text-green-600">
-                        +{ent.puntosOtorgados} pts
-                      </td>
-                      <td className="py-4 text-right">
-                        <span
-                          className={`px-3 py-1 rounded-full text-[10px] ${ent.estado === "VALIDADA" ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"}`}
-                        >
-                          {ent.estado || "SIN ESTADO"}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <div className="text-center p-10 text-slate-300">
-              Sin historial registrado
-            </div>
-          )}
         </div>
       </div>
     </div>
