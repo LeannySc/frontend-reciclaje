@@ -1,101 +1,150 @@
 import {
   ShieldCheck,
+  Store,
   Users,
+  MapPin,
   BarChart3,
-  Package,
-  Trash2,
-  Edit,
+  ChevronRight,
+  Settings,
+  Info,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import axios from "axios";
 
-const AdminDashboard = ({ usuario }) => {
-  const [metricas, setMetricas] = useState({
-    totalUsuarios: 0,
-    totalKilos: 0,
-    stock: [],
-  });
-  const [listaUsuarios, setListaUsuarios] = useState([]);
+const AdminDashboard = ({ usuario, irAAlmacen }) => {
+  const [metricas, setMetricas] = useState({ totalUsuarios: 0, totalKilos: 0 });
 
   useEffect(() => {
-    // 1. Cargamos el método verReportes() del UML
     axios
       .get("http://localhost:8080/api/admin/reportes")
       .then((res) => setMetricas(res.data));
-    // 2. Cargamos el método gestionarUsuarios() del UML
-    axios
-      .get("http://localhost:8080/api/admin/gestionar-usuarios")
-      .then((res) => setListaUsuarios(res.data));
   }, []);
 
   return (
-    <div className="space-y-8 animate-in zoom-in duration-500">
-      {/* SECCIÓN REPORTES (verReportes) */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-slate-900 text-white p-6 rounded-3xl shadow-xl flex items-center gap-4">
-          <Users className="text-blue-400" size={40} />
-          <div>
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-tighter">
-              Usuarios
-            </p>
-            <h4 className="text-3xl font-black">{metricas.totalUsuarios}</h4>
+    <div className="max-w-4xl mx-auto animate-in fade-in zoom-in duration-700 pb-20">
+      {/* HEADER DE IDENTIDAD - AHORA EN VERDE CIRCULAR */}
+      <div className="bg-gradient-to-br from-green-600 via-green-700 to-emerald-900 p-10 rounded-[3rem] text-white shadow-2xl relative overflow-hidden mb-10 text-left border-4 border-white/20">
+        <div className="relative z-10">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="bg-white/20 p-2 rounded-xl backdrop-blur-md border border-white/30 text-green-100">
+              <ShieldCheck size={20} />
+            </div>
+            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-green-100">
+              Consola de Administración
+            </span>
+          </div>
+
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div>
+              <h2 className="text-4xl font-black italic tracking-tighter leading-none mb-2">
+                ¡Hola,
+              </h2>
+              <h3 className="text-3xl font-bold opacity-90 text-green-50">
+                {usuario?.nombre || "Administrador"}!
+              </h3>
+            </div>
+
+            <div className="bg-black/20 backdrop-blur-lg px-6 py-4 rounded-3xl border border-white/10 flex gap-8">
+              <div>
+                <p className="text-[9px] font-black uppercase text-green-200 tracking-widest mb-1">
+                  Métricas Ciudad
+                </p>
+                <p className="text-2xl font-black">
+                  {metricas.totalKilos} <span className="text-xs">KG</span>
+                </p>
+              </div>
+              <div className="w-[1px] h-full bg-white/20"></div>
+              <div>
+                <p className="text-[9px] font-black uppercase text-green-200 tracking-widest mb-1">
+                  Estatus
+                </p>
+                <p className="text-2xl font-black uppercase italic text-emerald-300">
+                  Activo
+                </p>
+              </div>
+            </div>
           </div>
         </div>
-        <div className="bg-white p-6 rounded-3xl shadow-xl border border-green-100 flex items-center gap-4 text-green-700">
-          <BarChart3 size={40} />
-          <div>
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-tighter">
-              Kilos Totales
-            </p>
-            <h4 className="text-3xl font-black">{metricas.totalKilos} KG</h4>
-          </div>
+        {/* Adorno visual: Logo de reciclaje gigante de fondo */}
+        <ShieldCheck
+          size={280}
+          className="absolute -right-16 -bottom-16 text-white/5 rotate-12"
+        />
+      </div>
+
+      <div className="flex items-center justify-between px-6 mb-6">
+        <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.25em]">
+          Módulos de Control Maestro
+        </p>
+        <div className="flex items-center gap-2 text-[9px] font-bold text-green-600 bg-green-50 px-3 py-1 rounded-full border border-green-100">
+          <Info size={12} /> SISTEMA BLINDADO
         </div>
       </div>
 
-      {/* GESTIÓN DE USUARIOS (gestionarUsuarios) */}
-      <div className="bg-white rounded-[2.5rem] shadow-2xl border border-slate-50 overflow-hidden">
-        <div className="p-8 border-b flex justify-between items-center">
-          <h3 className="text-xl font-black text-slate-800">
-            Panel de Control de Popayán
-          </h3>
-          <span className="bg-red-100 text-red-600 px-3 py-1 rounded-full text-[10px] font-bold">
-            ACCESO NIVEL {usuario.nivelPrivilegios}
-          </span>
-        </div>
-        <div className="overflow-x-auto p-4">
-          <table className="w-full text-left">
-            <thead>
-              <tr className="text-slate-400 text-xs uppercase border-b">
-                <th className="p-4">Usuario</th>
-                <th className="p-4">Rol</th>
-                <th className="p-4">Correo</th>
-                <th className="p-4 text-right">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {listaUsuarios.map((u) => (
-                <tr
-                  key={u.id}
-                  className="hover:bg-slate-50 border-b border-slate-50 transition-colors"
-                >
-                  <td className="p-4 font-bold">{u.nombre}</td>
-                  <td className="p-4 text-xs font-medium text-blue-500 italic">
-                    {u.rol}
-                  </td>
-                  <td className="p-4 text-slate-500">{u.correo}</td>
-                  <td className="p-4 flex justify-end gap-2 text-slate-300">
-                    <button className="hover:text-blue-600">
-                      <Edit size={16} />
-                    </button>
-                    <button className="hover:text-red-600">
-                      <Trash2 size={16} />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+      {/* --- GRID DE SERVICIOS (COHERENCIA VISUAL) --- */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 px-2">
+        {/* CARD: CONTROL DE ALMACEN */}
+        <button
+          onClick={irAAlmacen}
+          className="bg-white p-6 rounded-[2.5rem] shadow-xl border border-slate-50 flex flex-col items-center gap-4 hover:bg-green-50 transition-all group active:scale-95 hover:border-green-200"
+        >
+          <div className="bg-emerald-100 p-4 rounded-2xl text-emerald-600 group-hover:bg-green-600 group-hover:text-white transition-all shadow-sm">
+            <Store size={28} />
+          </div>
+          <div className="flex flex-col items-center leading-none">
+            <span className="text-[10px] font-black text-slate-800 uppercase tracking-tight">
+              Gestionar
+            </span>
+            <span className="text-[11px] font-black text-green-600 uppercase italic mt-1">
+              Almacén Eco
+            </span>
+          </div>
+        </button>
+
+        {/* CARD: USUARIOS */}
+        <button className="bg-white p-6 rounded-[2.5rem] shadow-xl border border-slate-50 flex flex-col items-center gap-4 hover:bg-green-50 transition-all group active:scale-95 hover:border-green-200">
+          <div className="bg-green-100 p-4 rounded-2xl text-green-600 group-hover:bg-green-600 group-hover:text-white transition-all shadow-sm">
+            <Users size={28} />
+          </div>
+          <div className="flex flex-col items-center leading-none">
+            <span className="text-[10px] font-black text-slate-800 uppercase tracking-tight">
+              Comunidad
+            </span>
+            <span className="text-[11px] font-black text-green-600 uppercase italic mt-1">
+              Usuarios
+            </span>
+          </div>
+        </button>
+
+        {/* CARD: PUNTOS FISICOS */}
+        <button className="bg-white p-6 rounded-[2.5rem] shadow-xl border border-slate-100 flex flex-col items-center gap-4 hover:bg-green-50 transition-all group active:scale-95 hover:border-green-200">
+          <div className="bg-emerald-50 p-4 rounded-2xl text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-all shadow-sm">
+            <MapPin size={28} />
+          </div>
+          <div className="flex flex-col items-center leading-none">
+            <span className="text-[10px] font-black text-slate-800 uppercase tracking-tight">
+              Botes
+            </span>
+            <span className="text-[11px] font-black text-green-600 uppercase italic mt-1">
+              Estaciones
+            </span>
+          </div>
+        </button>
+
+        {/* CARD: AJUSTES */}
+        <button className="bg-white p-6 rounded-[2.5rem] shadow-xl border border-slate-50 flex flex-col items-center gap-4 hover:bg-slate-100 transition-all group active:scale-95">
+          <div className="bg-slate-100 p-4 rounded-2xl text-slate-500 group-hover:bg-slate-800 group-hover:text-white transition-all shadow-sm">
+            <Settings size={28} />
+          </div>
+          <div className="flex flex-col items-center leading-none">
+            <span className="text-[10px] font-black text-slate-800 uppercase tracking-tight">
+              Soporte
+            </span>
+            <span className="text-[11px] font-black text-slate-400 uppercase italic mt-1">
+              Configuración
+            </span>
+          </div>
+        </button>
       </div>
     </div>
   );

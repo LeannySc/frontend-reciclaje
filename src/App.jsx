@@ -10,6 +10,7 @@ import {
   ShoppingBag,
   History,
   LayoutList,
+  Package, // <-- IMPORTADO AHORA
 } from "lucide-react";
 
 // Componentes
@@ -21,7 +22,8 @@ import RecicladorDashboard from "./components/RecicladorDashboard";
 import EncargadoDashboard from "./components/EncargadoDashboard";
 import AdminDashboard from "./components/AdminDashboard";
 import HistorialEco from "./components/HistorialEco";
-import MonitorBotes from "./components/MonitorBotes"; // IMPORTANTE: Crear este archivo
+import MonitorBotes from "./components/MonitorBotes";
+import GestionCatalogo from "./components/GestionCatalogo"; // Sincronizado
 
 function App() {
   const [usuario, setUsuario] = useState(null);
@@ -30,20 +32,18 @@ function App() {
   const [verCatalogo, setVerCatalogo] = useState(false);
   const [verHistorial, setVerHistorial] = useState(false);
   const [verMonitor, setVerMonitor] = useState(false);
+  const [verAlmacen, setVerAlmacen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
-  // ESTADO GLOBAL DE BOTES PARA EL RECOLECTOR
   const [botes, setBotes] = useState([]);
 
-  // Función para refrescar botes desde cualquier parte
   const refrescarBotes = () => {
     axios
       .get("http://localhost:8080/api/puntos/todos")
       .then((res) => setBotes(res.data))
-      .catch(() => console.log("Esperando conexión con la red..."));
+      .catch(() => console.log("Conectando con red..."));
   };
 
-  // Efecto de refresco automático si es Encargado
   useEffect(() => {
     if (usuario?.rol === "ENCARGADO") {
       refrescarBotes();
@@ -64,6 +64,7 @@ function App() {
     setVerCatalogo(false);
     setVerHistorial(false);
     setVerMonitor(false);
+    setVerAlmacen(false);
   };
 
   if (modo === "LOGIN")
@@ -99,7 +100,6 @@ function App() {
         />
       )}
 
-      {/* --- NAVBAR DINÁMICO --- */}
       <nav className="bg-white/80 backdrop-blur-xl border-b border-slate-200 sticky top-0 z-[110] px-6 py-4 flex justify-between items-center">
         <div
           className="flex items-center gap-3 cursor-pointer"
@@ -107,6 +107,7 @@ function App() {
             setVerCatalogo(false);
             setVerHistorial(false);
             setVerMonitor(false);
+            setVerAlmacen(false);
           }}
         >
           <div className="bg-green-600 p-2 rounded-xl text-white shadow-lg shadow-green-100">
@@ -130,12 +131,12 @@ function App() {
             </div>
             <ChevronDown
               size={14}
-              className={`text-slate-400 transition-transform ${menuOpen ? "rotate-180" : ""}`}
+              className={`transition-transform ${menuOpen ? "rotate-180" : ""}`}
             />
           </button>
 
           {menuOpen && (
-            <div className="absolute right-0 mt-3 w-64 bg-white rounded-3xl shadow-2xl border border-slate-100 py-3 overflow-hidden animate-in slide-in-from-top-2">
+            <div className="absolute right-0 mt-3 w-64 bg-white rounded-3xl shadow-2xl border border-slate-100 py-3 animate-in slide-in-from-top-2">
               <button
                 onClick={() => {
                   setVerPerfil(true);
@@ -151,10 +152,9 @@ function App() {
                   <button
                     onClick={() => {
                       setVerHistorial(true);
-                      setVerCatalogo(false);
                       setMenuOpen(false);
                     }}
-                    className="w-full flex items-center gap-3 px-6 py-3 text-xs font-black text-slate-600 hover:bg-slate-50 transition-colors"
+                    className="w-full flex items-center gap-3 px-6 py-3 text-xs font-black text-slate-600 hover:bg-slate-50"
                   >
                     <History size={18} className="text-orange-500" /> Huella
                     Ecológica
@@ -162,13 +162,11 @@ function App() {
                   <button
                     onClick={() => {
                       setVerCatalogo(true);
-                      setVerHistorial(false);
                       setMenuOpen(false);
                     }}
-                    className="w-full flex items-center gap-3 px-6 py-3 text-xs font-black text-slate-600 hover:bg-slate-50 transition-colors"
+                    className="w-full flex items-center gap-3 px-6 py-3 text-xs font-black text-slate-600 hover:bg-slate-50"
                   >
-                    <ShoppingBag size={18} className="text-blue-500" /> Ver
-                    Maravillas
+                    <ShoppingBag size={18} className="text-blue-500" /> Catálogo
                   </button>
                 </>
               )}
@@ -179,25 +177,36 @@ function App() {
                     setVerMonitor(true);
                     setMenuOpen(false);
                   }}
-                  className="w-full flex items-center gap-3 px-6 py-3 text-xs font-black text-slate-600 hover:bg-slate-50 transition-colors"
+                  className="w-full flex items-center gap-3 px-6 py-3 text-xs font-black text-slate-600 hover:bg-slate-50"
                 >
-                  <LayoutList size={18} className="text-green-600" /> Monitor de
+                  <LayoutList size={18} className="text-green-600" /> Monitor
                   Ruta
+                </button>
+              )}
+
+              {usuario.rol === "ADMINISTRADOR" && (
+                <button
+                  onClick={() => {
+                    setVerAlmacen(true);
+                    setMenuOpen(false);
+                  }}
+                  className="w-full flex items-center gap-3 px-6 py-3 text-xs font-black text-slate-600 hover:bg-slate-50"
+                >
+                  <Package size={18} className="text-blue-600" /> Almacén Eco
                 </button>
               )}
 
               <button
                 onClick={salir}
-                className="w-full flex items-center gap-3 px-6 py-4 text-xs font-black text-red-500 hover:bg-red-50 mt-2 border-t"
+                className="w-full flex items-center gap-3 px-6 py-4 text-xs font-black text-red-500 hover:bg-red-50 border-t"
               >
-                <LogOut size={18} /> Salir del Sistema
+                <LogOut size={18} /> Salir
               </button>
             </div>
           )}
         </div>
       </nav>
 
-      {/* --- RENDERIZADO DE MÓDULOS --- */}
       <main className="max-w-[1400px] mx-auto p-6 lg:p-10">
         {verCatalogo ? (
           <Catalogo
@@ -217,6 +226,8 @@ function App() {
             alRegresar={() => setVerMonitor(false)}
             refrescar={refrescarBotes}
           />
+        ) : verAlmacen ? (
+          <GestionCatalogo alRegresar={() => setVerAlmacen(false)} />
         ) : (
           <div className="animate-in fade-in duration-700">
             {usuario.rol === "RECICLADOR" && (
@@ -227,14 +238,13 @@ function App() {
               />
             )}
             {usuario.rol === "ENCARGADO" && (
-              <EncargadoDashboard
-                usuario={usuario}
-                botes={botes}
-                irAMonitor={() => setVerMonitor(true)}
-              />
+              <EncargadoDashboard usuario={usuario} botes={botes} />
             )}
             {usuario.rol === "ADMINISTRADOR" && (
-              <AdminDashboard usuario={usuario} />
+              <AdminDashboard
+                usuario={usuario}
+                irAAlmacen={() => setVerAlmacen(true)}
+              />
             )}
           </div>
         )}
