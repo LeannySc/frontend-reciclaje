@@ -1,163 +1,119 @@
 import { useState } from "react";
-import {
-  Wallet,
-  MapPin,
-  Award,
-  History,
-  TrendingUp,
-  ScanQrCode,
-  Eye,
-  Info,
-  Loader2,
-  CheckCircle,
-  XCircle,
+import { 
+  Wallet, MapPin, Award, History, 
+  ScanQrCode, Eye, Info, Navigation, 
+  MousePointer2, Sparkles, ChevronRight
 } from "lucide-react";
 import Mapa from "./Mapa";
 import EscaneoQR from "./EscaneoQR";
-import { toast } from "sonner"; // <--- SOLUCIÓN AL ERROR: 'toast' is not defined
+import { toast } from "sonner";
 
 const RecicladorDashboard = ({ usuario, irACatalogo, irAHistorial }) => {
   const [scanneando, setScanneando] = useState(false);
-  const [esperandoPeso, setEsperandoPeso] = useState(false);
 
-  const puntosTotales =
-    usuario.historialEntrega?.reduce(
-      (acc, ent) =>
-        ent.estado === "VALIDADA" ? acc + ent.puntosOtorgados : acc,
-      0,
-    ) || 0;
-
-  // SOLUCIÓN AL ERROR: Esta función ahora se conecta con el Scanner
-  const activarSesionDePesaje = (puntoId) => {
-    setScanneando(false);
-    setEsperandoPeso(true);
-
-    toast.success("¡Estación Vinculada!", {
-      description: `Bote ID ${puntoId} listo. Deposita el plástico para procesar tus puntos.`,
-      duration: 6000,
-    });
-  };
+  const puntosTotales = usuario.historialEntrega?.reduce(
+    (acc, ent) => (ent.estado === "VALIDADA" ? acc + ent.puntosOtorgados : acc),
+    0
+  ) || 0;
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in duration-700 pb-20">
-      {/* --- SECCIÓN BALANCES --- */}
-      <div className="bg-slate-900 text-white p-6 rounded-[2rem] shadow-2xl relative overflow-hidden group text-center border-b-8 border-green-600">
-        <div className="absolute top-0 right-0 p-8 opacity-10">
-          <Wallet size={120} className="rotate-12" />
+    <div className="w-full max-w-[1600px] mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10">
+      
+      {/* --- SECCIÓN SUPERIOR: SISTEMA DE TARJETAS FLUIDO --- */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-12 gap-6 px-2">
+        
+        {/* WALLET ECO (4/12 en desktop, 100% en móvil) */}
+        <div className="xl:col-span-4 bg-slate-900 text-white p-8 rounded-[3rem] shadow-2xl relative overflow-hidden flex flex-col justify-between min-h-[220px] border-b-8 border-green-600 transition-transform hover:scale-[1.01]">
+          <div className="absolute top-0 right-0 p-10 opacity-10">
+            <Wallet size={120} className="rotate-12" />
+          </div>
+          
+          <div className="relative z-10 text-left">
+            <div className="flex items-center gap-2 text-slate-400 mb-2">
+              <span className="text-[10px] font-black uppercase tracking-[0.3em]">Billetera Disponible</span>
+              <Eye size={12} className="opacity-40" />
+            </div>
+            <div className="flex items-baseline gap-2">
+              <h2 className="text-5xl md:text-7xl font-black">{puntosTotales}</h2>
+              <span className="text-xl font-bold text-green-400 uppercase italic">pts</span>
+            </div>
+          </div>
+
+          <div className="relative z-10 flex justify-between items-center bg-white/5 p-3 rounded-2xl backdrop-blur-md">
+             <div className="flex items-center gap-2">
+                <Sparkles size={14} className="text-yellow-400" />
+                <span className="text-[9px] font-black uppercase tracking-widest text-slate-300">Usuario Verificado</span>
+             </div>
+             <ChevronRight size={14} className="text-slate-500" />
+          </div>
         </div>
-        <div className="relative z-10 flex flex-col items-center">
-          <div className="flex items-center gap-2 text-slate-400 mb-1">
-            <span className="text-[10px] font-black uppercase tracking-[0.2em]">
-              Puntos Disponibles
-            </span>
-            <Eye size={12} className="opacity-50" />
-          </div>
-          <div className="flex items-baseline gap-2">
-            <span className="text-4xl font-black">
-              {puntosTotales.toLocaleString()}
-            </span>
-            <span className="text-green-400 font-bold text-xs uppercase tracking-tighter">
-              Eco Pts
-            </span>
-          </div>
+
+        {/* ACCESOS RÁPIDOS (8/12 en desktop, reordena en móvil) */}
+        <div className="xl:col-span-8 grid grid-cols-2 sm:grid-cols-4 gap-4">
+           {[
+             { label: 'Maravillas', sub: 'Tienda Eco', icon: Award, color: 'text-blue-600', bg: 'bg-blue-50', action: irACatalogo },
+             { label: 'Escanear', sub: 'Abrir Cámara', icon: ScanQrCode, color: 'text-green-600', bg: 'bg-green-50', action: () => setScanneando(true) },
+             { label: 'Movimientos', sub: 'Historial', icon: History, color: 'text-orange-600', bg: 'bg-orange-50', action: irAHistorial },
+             { label: 'Información', sub: 'Ayuda Pro', icon: Info, color: 'text-purple-600', bg: 'bg-purple-50', action: () => toast.info("Guía: Escanea un bote real") }
+           ].map((item, idx) => (
+             <button key={idx} onClick={item.action} className="bg-white border border-slate-100 p-6 rounded-[2.5rem] shadow-sm hover:shadow-xl hover:border-green-300 transition-all flex flex-col items-center justify-center gap-3 group active:scale-95">
+                <div className={`${item.bg} ${item.color} p-5 rounded-3xl transition-all group-hover:scale-110 shadow-sm`}>
+                   <item.icon size={32} strokeWidth={2.5} />
+                </div>
+                <div className="flex flex-col leading-tight">
+                  <span className="text-xs font-black text-slate-800 uppercase tracking-tight">{item.label}</span>
+                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">{item.sub}</span>
+                </div>
+             </button>
+           ))}
         </div>
       </div>
 
-      {/* --- GRID DE SERVICIOS --- */}
-      <div className="grid grid-cols-3 gap-4">
-        <button
-          onClick={irACatalogo}
-          className="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm flex flex-col items-center gap-2 hover:bg-green-50 transition-all group active:scale-95"
-        >
-          <div className="bg-blue-100 p-3 rounded-2xl text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all shadow-md">
-            <Award size={20} />
-          </div>
-          <span className="text-[9px] font-black text-slate-500 uppercase tracking-tight">
-            Maravillas
-          </span>
-        </button>
+      {/* --- SECCIÓN CENTRAL: MAPA LOGÍSTICO (Usa todo el ancho sobrante) --- */}
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 px-2">
+        
+        {/* Panel lateral de info (Aparece al lado en pantallas grandes, arriba en móvil) */}
+        <div className="xl:col-span-3 space-y-4 order-2 xl:order-1 text-left">
+           <div className="bg-white p-8 rounded-[3rem] border border-slate-100 shadow-sm flex flex-col justify-between h-full min-h-[300px] xl:min-h-0">
+              <div>
+                <div className="bg-red-50 w-10 h-10 rounded-2xl flex items-center justify-center mb-4">
+                  <MapPin size={20} className="text-red-500" />
+                </div>
+                <h3 className="text-lg font-black text-slate-800 uppercase tracking-tighter leading-tight mb-4">Estaciones en Popayán</h3>
+                <p className="text-xs text-slate-400 font-bold leading-relaxed mb-6 uppercase">
+                  Identifica las celdas azules para activar la tecnología IoT del bote de basura.
+                </p>
+              </div>
 
-        <button
-          onClick={() => setScanneando(true)}
-          className="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm flex flex-col items-center gap-2 hover:bg-green-50 transition-all group active:scale-95 border-b-4 border-green-500"
-        >
-          <div className="bg-green-100 p-3 rounded-2xl text-green-600 group-hover:bg-green-600 group-hover:text-white transition-all shadow-md">
-            <ScanQrCode size={20} />
-          </div>
-          <span className="text-[9px] font-black text-slate-500 uppercase tracking-tight">
-            Reciclar
-          </span>
-        </button>
-
-        <button
-          onClick={irAHistorial}
-          className="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm flex flex-col items-center gap-2 hover:bg-green-50 transition-all group active:scale-95"
-        >
-          <div className="bg-orange-100 p-3 rounded-2xl text-orange-600 group-hover:bg-orange-600 group-hover:text-white transition-all shadow-md">
-            <History size={20} />
-          </div>
-          <span className="text-[9px] font-black text-slate-500 uppercase tracking-tight">
-            Movimientos
-          </span>
-        </button>
-      </div>
-
-      {/* --- MODAL DE ESPERA IOT (Solo aparece si escaneó con éxito) --- */}
-      {esperandoPeso && (
-        <div className="bg-blue-600 text-white p-6 rounded-[2rem] shadow-2xl flex items-center justify-between animate-in zoom-in">
-          <div className="flex items-center gap-4 text-left">
-            <div className="bg-white/20 p-4 rounded-full">
-              <Loader2 className="animate-spin text-white" size={24} />
-            </div>
-            <div>
-              <h4 className="font-black text-sm uppercase">
-                Pesaje en curso...
-              </h4>
-              <p className="text-[10px] font-bold text-blue-100">
-                Esperando respuesta del sensor Arduino.
-              </p>
-            </div>
-          </div>
-          <button
-            onClick={() => setEsperandoPeso(false)}
-            className="text-[10px] font-black border border-white/30 px-4 py-2 rounded-xl hover:bg-white/10 transition-all"
-          >
-            CANCELAR
-          </button>
-        </div>
-      )}
-
-      {/* --- MAPA FULL SIZE --- */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between px-2">
-          <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-            <MapPin size={14} className="text-red-500" /> Estaciones Cercanas
-          </h3>
-          <span className="text-[9px] font-bold text-green-600 bg-green-50 px-2 py-1 rounded-full border border-green-100 uppercase">
-            Popayán Real-Time
-          </span>
+              <div className="bg-slate-50 p-5 rounded-3xl border border-slate-100 flex items-center gap-4 transition-colors hover:bg-green-50 hover:border-green-200">
+                  <div className="bg-white p-2 rounded-xl shadow-sm">
+                    <MousePointer2 size={18} className="text-green-600" />
+                  </div>
+                  <span className="text-[10px] font-black text-green-700 uppercase tracking-widest leading-none">Click en PIN <br/> para info</span>
+              </div>
+           </div>
         </div>
 
-        <div className="h-[450px] bg-white rounded-[2.5rem] shadow-2xl border-8 border-white overflow-hidden relative">
-          <Mapa />
-          <div className="absolute bottom-6 left-6 right-6 z-[1000] bg-white/80 backdrop-blur-md p-4 rounded-3xl border border-white flex items-center gap-4 shadow-xl">
-            <div className="bg-slate-900 text-white p-2 rounded-xl">
-              <Info size={16} />
-            </div>
-            <p className="text-[10px] font-bold text-slate-700 leading-tight">
-              Encuentra los pines azules para iniciar sesión frente al bote.
-            </p>
-          </div>
+        {/* MAPA GIANT FULL (9 de 12 columnas en Desktop) */}
+        <div className="xl:col-span-9 h-[550px] md:h-[650px] bg-white rounded-[3.5rem] shadow-2xl border-[12px] border-white overflow-hidden relative shadow-slate-200 order-1 xl:order-2">
+           <Mapa />
+           
+           {/* Tooltip de navegación pro */}
+           <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-[1000] w-full max-w-sm px-6">
+              <div className="bg-slate-900/90 backdrop-blur-xl p-4 rounded-[2rem] border border-white/20 flex items-center gap-4 shadow-2xl animate-in slide-in-from-bottom-10 duration-1000">
+                  <div className="bg-green-600 p-2.5 rounded-2xl">
+                     <Navigation size={20} className="text-white" />
+                  </div>
+                  <p className="text-[10px] text-white font-bold text-left leading-tight uppercase tracking-tight">
+                    Vista aérea en tiempo real conectada a la red industrial de recolección.
+                  </p>
+              </div>
+           </div>
         </div>
       </div>
 
-      {/* COMPONENTE DE CÁMARA (Activación de la sesión) */}
       {scanneando && (
-        <EscaneoQR
-          userId={usuario.id}
-          alCerrar={() => setScanneando(false)}
-          onSuccess={activarSesionDePesaje} // <--- Pasamos el puente lógico
-        />
+        <EscaneoQR userId={usuario.id} alCerrar={() => setScanneando(false)} />
       )}
     </div>
   );
