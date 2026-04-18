@@ -4,12 +4,10 @@ import {
   Truck,
   RotateCcw,
   Loader2,
-  AlertTriangle,
   ListFilter,
-  Layers,
-  Activity, // Logo nuevo para el botón
+  Activity,
   LayoutList,
-  CheckCircle2,
+  X,
 } from "lucide-react";
 import Mapa from "./Mapa";
 import { toast } from "sonner";
@@ -17,7 +15,7 @@ import { toast } from "sonner";
 const EncargadoDashboard = ({ usuario }) => {
   const [botes, setBotes] = useState([]);
   const [cargando, setCargando] = useState(false);
-  const [verLista, setVerLista] = useState(true);
+  const [verLista, setVerLista] = useState(false);
 
   const cargarEstadoRed = () => {
     axios
@@ -36,7 +34,7 @@ const EncargadoDashboard = ({ usuario }) => {
     setCargando(true);
     try {
       await axios.post(
-        `http://localhost:8080/api/encargado/${puntoId}/Vaciar?encargadoId=${usuario.id}`,
+        `http://localhost:8080/api/encargado/${puntoId}/Vaciar?encargadoId=${usuario.id}`
       );
       toast.success("Misión de limpieza exitosa");
       cargarEstadoRed();
@@ -51,151 +49,153 @@ const EncargadoDashboard = ({ usuario }) => {
   const botesLlenos = botes.filter((b) => b.nivelLlenado >= 80).length;
 
   return (
-    <div className="relative h-[calc(100vh-140px)] w-full overflow-hidden flex flex-col antialiased bg-slate-50 rounded-[3rem] shadow-inner border-4 border-white">
-      {/* --- BARRA DE COMANDO SUPERIOR (Botón incluido aquí) --- */}
-      <div className="bg-white p-6 flex justify-between items-center z-[40] border-b border-slate-100 px-10 shadow-sm">
-        <div className="flex items-center gap-5">
-          <div className="bg-green-600 p-3 rounded-2xl text-white shadow-lg shadow-green-100">
-            <Truck size={24} />
+    <div className="flex flex-col gap-4 sm:gap-6 pb-8 animate-in fade-in duration-700">
+
+      {/* BARRA DE COMANDO */}
+      <div className="bg-white rounded-[2rem] sm:rounded-[3rem] border border-slate-100 shadow-sm p-4 sm:p-6 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+        <div className="flex items-center gap-3 sm:gap-5">
+          <div className="bg-green-600 p-2.5 sm:p-3 rounded-xl sm:rounded-2xl text-white shadow-lg shadow-green-100 flex-shrink-0">
+            <Truck size={20} className="sm:w-6 sm:h-6" />
           </div>
           <div className="text-left">
-            <h2 className="text-xl font-black text-slate-800 uppercase tracking-tighter leading-none italic">
+            <h2 className="text-lg sm:text-xl font-black text-slate-800 uppercase tracking-tighter leading-none italic">
               Logística de Popayán
             </h2>
-            <p className="text-[10px] font-bold text-slate-400 uppercase mt-1.5 flex items-center gap-2">
-              <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+            <p className="text-[10px] font-bold text-slate-400 uppercase mt-1 flex items-center gap-2">
+              <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse flex-shrink-0"></span>
               Operador: {usuario.nombre}
             </p>
           </div>
         </div>
 
-        {/* METRICAS Y BOTÓN DE CONTROL */}
-        <div className="flex items-center gap-10">
-          <div className="flex flex-col items-end leading-none">
-            <span className="text-[10px] font-black text-slate-400 uppercase mb-1.5 tracking-widest">
-              Estado Red
-            </span>
-            <div className="flex items-center gap-3">
-              <span className="text-xl font-black text-slate-800">
-                {botes.length}{" "}
-                <small className="text-[10px] text-slate-400">PUNTOS</small>
+        <div className="flex items-center justify-between sm:justify-end gap-4 sm:gap-8">
+          {/* Métricas */}
+          <div className="flex items-center gap-4 sm:gap-6">
+            <div className="text-left sm:text-right">
+              <span className="text-[9px] font-black text-slate-400 uppercase block mb-1">Red</span>
+              <span className="text-lg sm:text-xl font-black text-slate-800">
+                {botes.length} <small className="text-[9px] text-slate-400">PTS</small>
               </span>
-              <span
-                className={`text-xl font-black ${botesLlenos > 0 ? "text-red-500 animate-bounce" : "text-green-600"}`}
-              >
-                {botesLlenos}{" "}
-                <small className="text-[10px] text-slate-400 uppercase">
-                  Alertas
-                </small>
+            </div>
+            <div className="text-left sm:text-right">
+              <span className="text-[9px] font-black text-slate-400 uppercase block mb-1">Alertas</span>
+              <span className={`text-lg sm:text-xl font-black ${botesLlenos > 0 ? "text-red-500 animate-bounce" : "text-green-600"}`}>
+                {botesLlenos}
               </span>
             </div>
           </div>
 
-          {/* BOTÓN NUEVO: Fuera del mapa, pequeño y bonito */}
+          {/* Botón toggle lista */}
           <button
             onClick={() => setVerLista(!verLista)}
-            className={`flex items-center gap-2 px-5 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all shadow-sm active:scale-95 border-2
-                ${
-                  verLista
-                    ? "bg-slate-900 text-white border-slate-900 shadow-slate-200"
-                    : "bg-white text-green-600 border-green-600 shadow-green-50 hover:bg-green-50"
-                }`}
+            className={`flex items-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl font-black text-[10px] uppercase tracking-wider transition-all shadow-sm active:scale-95 border-2 flex-shrink-0
+              ${verLista
+                ? "bg-slate-900 text-white border-slate-900"
+                : "bg-white text-green-600 border-green-600 hover:bg-green-50"
+              }`}
           >
-            {verLista ? <Activity size={16} /> : <LayoutList size={16} />}
-            {verLista ? "Ocultar Monitor" : "Ver Lista de Botes"}
+            {verLista ? <X size={14} /> : <LayoutList size={14} />}
+            <span className="hidden sm:inline">{verLista ? "Cerrar" : "Ver Botes"}</span>
           </button>
         </div>
       </div>
 
-      <div className="flex-grow flex relative overflow-hidden">
-        {/* --- MAPA TOTALMENTE LIMPIO --- */}
-        <div className="flex-grow h-full relative z-0">
+      {/* CONTENIDO PRINCIPAL: MAPA + PANEL */}
+      <div className="relative">
+
+        {/* MAPA */}
+        <div className={`bg-white rounded-[2rem] sm:rounded-[3rem] overflow-hidden border-[8px] border-white shadow-2xl shadow-slate-200 transition-all duration-500 ${verLista ? "h-[250px] sm:h-[350px] lg:h-[500px]" : "h-[350px] sm:h-[500px] lg:h-[650px]"}`}>
           <Mapa />
 
-          {/* Legend Flotante Minimalista */}
-          <div className="absolute bottom-6 right-6 z-[1000] pointer-events-none hidden sm:block">
-            <div className="bg-white/80 backdrop-blur-md shadow-2xl p-4 rounded-[2rem] border border-slate-100 pointer-events-auto">
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2 border-r pr-3 border-slate-200">
-                  <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                  <span className="text-[9px] font-black text-slate-500 uppercase">
-                    Red Sana
-                  </span>
+          {/* Leyenda */}
+          <div className="absolute bottom-4 right-4 z-[1000]">
+            <div className="bg-white/90 backdrop-blur-md shadow-xl p-3 rounded-2xl border border-slate-100">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0"></div>
+                  <span className="text-[8px] font-black text-slate-500 uppercase">Sana</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
-                  <span className="text-[9px] font-black text-slate-500 uppercase">
-                    Bote Lleno
-                  </span>
+                  <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse flex-shrink-0"></div>
+                  <span className="text-[8px] font-black text-slate-500 uppercase">Lleno</span>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* --- PANEL LATERAL FLY-OUT DERECHO --- */}
-        <div
-          className={`absolute right-0 top-0 h-full bg-white/95 backdrop-blur-sm z-20 border-l border-slate-200 transition-all duration-500 cubic-bezier(0.4, 0, 0.2, 1) ${verLista ? "w-80 opacity-100 shadow-2xl" : "w-0 opacity-0 border-none"}`}
-        >
-          <div className="p-6 h-full flex flex-col min-w-[320px]">
-            <div className="flex items-center gap-2 mb-8 border-b border-slate-50 pb-4">
-              <ListFilter size={18} className="text-green-600" />
-              <h3 className="text-xs font-black text-slate-800 uppercase tracking-widest leading-none text-left">
+        {/* PANEL DE BOTES (toggle) */}
+        {verLista && (
+          <div className="mt-4 bg-white rounded-[2rem] sm:rounded-[3rem] border border-slate-100 shadow-xl overflow-hidden animate-in slide-in-from-top-4 duration-300">
+            <div className="p-4 sm:p-6 border-b border-slate-50 flex items-center gap-2">
+              <ListFilter size={16} className="text-green-600" />
+              <h3 className="text-xs font-black text-slate-800 uppercase tracking-widest">
                 Itinerario de Carga
               </h3>
             </div>
 
-            <div className="space-y-4 overflow-y-auto flex-grow pr-2 text-left custom-scrollbar pb-10">
-              {botes.map((bote) => (
-                <div
-                  key={bote.id}
-                  className={`p-6 rounded-[2.2rem] border transition-all duration-300 ${bote.nivelLlenado >= 80 ? "border-red-400 bg-red-50/20" : "bg-slate-50 border-slate-100 shadow-sm"}`}
-                >
-                  <div className="flex justify-between items-center mb-3">
-                    <span className="bg-white text-slate-400 px-2 py-0.5 rounded-lg text-[8px] font-black border border-slate-100">
-                      ST-0{bote.id}
-                    </span>
-                    <span
-                      className={`text-[10px] font-black px-2 py-1 rounded-full ${bote.nivelLlenado >= 80 ? "bg-red-500 text-white" : "text-slate-500"}`}
-                    >
-                      {bote.nivelLlenado}%
-                    </span>
-                  </div>
-                  <h4 className="font-black text-slate-800 text-[11px] mb-1 uppercase truncate leading-none">
-                    {bote.nombre}
-                  </h4>
-                  <p className="text-[9px] text-slate-400 font-medium mb-5 truncate leading-none italic capitalize">
-                    {bote.direccion}
-                  </p>
-
-                  <div className="w-full bg-slate-200 h-1 rounded-full overflow-hidden mb-6">
-                    <div
-                      className={`h-full rounded-full transition-all duration-1000 ${bote.nivelLlenado >= 80 ? "bg-red-600 shadow-[0_0_15px_rgba(220,38,38,0.5)]" : "bg-green-500"}`}
-                      style={{ width: `${bote.nivelLlenado}%` }}
-                    ></div>
-                  </div>
-
-                  <button
-                    onClick={() => manejarVaciado(bote.id)}
-                    disabled={bote.nivelLlenado < 80 || cargando}
-                    className={`w-full py-4 rounded-2xl text-[9px] font-black uppercase flex justify-center items-center gap-2 transition-all active:scale-95
-                      ${bote.nivelLlenado >= 80 && !cargando ? "bg-slate-900 text-white hover:bg-black shadow-lg shadow-slate-300" : "bg-white text-slate-300 border border-slate-100"}`}
+            <div className="overflow-x-auto">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-4 sm:p-6 max-h-[400px] overflow-y-auto">
+                {botes.map((bote) => (
+                  <div
+                    key={bote.id}
+                    className={`p-4 sm:p-5 rounded-[1.5rem] sm:rounded-[2rem] border transition-all text-left ${
+                      bote.nivelLlenado >= 80
+                        ? "border-red-400 bg-red-50/30"
+                        : "bg-slate-50 border-slate-100"
+                    }`}
                   >
-                    {cargando ? (
-                      <Loader2
-                        size={12}
-                        className="animate-spin text-green-500"
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="bg-white text-slate-400 px-2 py-0.5 rounded-lg text-[8px] font-black border border-slate-100">
+                        ST-0{bote.id}
+                      </span>
+                      <span
+                        className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
+                          bote.nivelLlenado >= 80 ? "bg-red-500 text-white" : "text-slate-500"
+                        }`}
+                      >
+                        {bote.nivelLlenado}%
+                      </span>
+                    </div>
+
+                    <h4 className="font-black text-slate-800 text-[11px] mb-0.5 uppercase truncate leading-none">
+                      {bote.nombre}
+                    </h4>
+                    <p className="text-[9px] text-slate-400 font-medium mb-3 truncate italic capitalize">
+                      {bote.direccion}
+                    </p>
+
+                    <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden mb-3">
+                      <div
+                        className={`h-full rounded-full transition-all duration-1000 ${
+                          bote.nivelLlenado >= 80 ? "bg-red-600" : "bg-green-500"
+                        }`}
+                        style={{ width: `${bote.nivelLlenado}%` }}
                       />
-                    ) : (
-                      <RotateCcw size={12} />
-                    )}
-                    {cargando ? "Ejecutando..." : "Recolectar"}
-                  </button>
-                </div>
-              ))}
+                    </div>
+
+                    <button
+                      onClick={() => manejarVaciado(bote.id)}
+                      disabled={bote.nivelLlenado < 80 || cargando}
+                      className={`w-full py-3 rounded-xl text-[9px] font-black uppercase flex justify-center items-center gap-2 transition-all active:scale-95
+                        ${bote.nivelLlenado >= 80 && !cargando
+                          ? "bg-slate-900 text-white hover:bg-black shadow-md"
+                          : "bg-white text-slate-300 border border-slate-100"
+                        }`}
+                    >
+                      {cargando ? (
+                        <Loader2 size={11} className="animate-spin text-green-500" />
+                      ) : (
+                        <RotateCcw size={11} />
+                      )}
+                      {cargando ? "..." : "Recolectar"}
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

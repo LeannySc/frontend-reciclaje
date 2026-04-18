@@ -3,9 +3,7 @@ import axios from "axios";
 import {
   Plus,
   Edit3,
-  Save,
   X,
-  Package,
   Loader2,
   ImagePlus,
   ChevronLeft,
@@ -45,10 +43,7 @@ const GestionCatalogo = ({ alRegresar }) => {
     setCargando(true);
     try {
       if (editandoId) {
-        await axios.put(
-          `http://localhost:8080/api/admin/productos/${editandoId}`,
-          datos,
-        );
+        await axios.put(`http://localhost:8080/api/admin/productos/${editandoId}`, datos);
         toast.success("Producto Actualizado");
       } else {
         await axios.post("http://localhost:8080/api/admin/productos", datos);
@@ -56,141 +51,130 @@ const GestionCatalogo = ({ alRegresar }) => {
       }
       setMostrarForm(false);
       setEditandoId(null);
-      setDatos({
-        nombre: "",
-        descripcion: "",
-        costoPuntos: 0,
-        stock: 0,
-        imagenUrl: "",
-        activo: true,
-      });
+      setDatos({ nombre: "", descripcion: "", costoPuntos: 0, stock: 0, imagenUrl: "", activo: true });
       cargarProductos();
     } catch (err) {
-      console.error("Fallo técnico en la persistencia:", err); // <-- Aquí usamos la variable 'err'
-      toast.error("Error al procesar", {
-        description: "Revisa la consola del servidor.",
-      });
+      console.error("Fallo técnico:", err);
+      toast.error("Error al procesar", { description: "Revisa la consola del servidor." });
     } finally {
       setCargando(false);
     }
   };
 
   return (
-    <div className="animate-in slide-in-from-bottom-4 duration-500 pb-20">
-      <div className="flex justify-between items-center mb-10 px-4">
-        <div className="flex items-center gap-4">
+    <div className="animate-in slide-in-from-bottom-4 duration-500 pb-16">
+      {/* HEADER */}
+      <div className="flex justify-between items-center mb-6 sm:mb-10 px-0 sm:px-4">
+        <div className="flex items-center gap-3 sm:gap-4">
           <button
             onClick={alRegresar}
-            className="p-3 bg-white border rounded-2xl hover:bg-slate-50"
+            className="p-2.5 sm:p-3 bg-white border rounded-xl sm:rounded-2xl hover:bg-slate-50 shadow-sm flex-shrink-0"
           >
-            <ChevronLeft />
+            <ChevronLeft size={22} />
           </button>
-          <h2 className="text-3xl font-black uppercase tracking-tighter">
+          <h2 className="text-2xl sm:text-3xl font-black uppercase tracking-tighter">
             Control Almacén
           </h2>
         </div>
         <button
           onClick={() => setMostrarForm(!mostrarForm)}
-          className={`px-6 py-4 rounded-2xl font-black text-xs uppercase flex items-center gap-2 ${mostrarForm ? "bg-red-500" : "bg-green-600"} text-white`}
+          className={`px-4 sm:px-6 py-3 sm:py-4 rounded-xl sm:rounded-2xl font-black text-xs uppercase flex items-center gap-2 transition-all ${
+            mostrarForm ? "bg-red-500" : "bg-green-600"
+          } text-white shadow-lg active:scale-95`}
         >
-          {mostrarForm ? <X /> : <Plus />} {mostrarForm ? "Cerrar" : "Nuevo"}
+          {mostrarForm ? <X size={16} /> : <Plus size={16} />}
+          <span className="hidden sm:inline">{mostrarForm ? "Cerrar" : "Nuevo"}</span>
         </button>
       </div>
 
+      {/* FORMULARIO */}
       {mostrarForm && (
         <form
           onSubmit={handleGuardar}
-          className="mx-4 mb-10 p-8 bg-white rounded-[3rem] border shadow-2xl grid grid-cols-1 md:grid-cols-2 gap-8 text-left"
+          className="mx-0 sm:mx-4 mb-6 sm:mb-10 p-5 sm:p-8 bg-white rounded-[2rem] sm:rounded-[3rem] border shadow-2xl grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-8 text-left"
         >
-          <div className="space-y-4">
-            <div className="h-56 bg-slate-50 rounded-3xl border-2 border-dashed border-slate-200 flex items-center justify-center overflow-hidden">
+          {/* Columna imagen */}
+          <div className="space-y-3 sm:space-y-4">
+            <div className="h-44 sm:h-56 bg-slate-50 rounded-2xl sm:rounded-3xl border-2 border-dashed border-slate-200 flex items-center justify-center overflow-hidden">
               {datos.imagenUrl ? (
-                <img
-                  src={datos.imagenUrl}
-                  className="w-full h-full object-cover"
-                  alt="prev"
-                />
+                <img src={datos.imagenUrl} className="w-full h-full object-cover" alt="prev" />
               ) : (
-                <ImagePlus size={48} className="text-slate-300" />
+                <ImagePlus size={40} className="text-slate-300" />
               )}
             </div>
             <input
               placeholder="URL de la imagen"
-              className="w-full p-4 rounded-xl bg-slate-100 outline-none"
+              className="w-full p-3 sm:p-4 rounded-xl bg-slate-100 outline-none text-sm"
               value={datos.imagenUrl}
-              onChange={(e) =>
-                setDatos({ ...datos, imagenUrl: e.target.value })
-              }
+              onChange={(e) => setDatos({ ...datos, imagenUrl: e.target.value })}
             />
           </div>
-          <div className="space-y-4">
+
+          {/* Columna datos */}
+          <div className="space-y-3 sm:space-y-4">
             <input
-              placeholder="Nombre"
-              className="w-full p-4 rounded-xl bg-slate-100 font-bold"
+              placeholder="Nombre del producto"
+              className="w-full p-3 sm:p-4 rounded-xl bg-slate-100 font-bold text-sm outline-none"
               value={datos.nombre}
               onChange={(e) => setDatos({ ...datos, nombre: e.target.value })}
+              required
             />
             <textarea
               placeholder="Descripción"
               rows="3"
-              className="w-full p-4 rounded-xl bg-slate-100"
+              className="w-full p-3 sm:p-4 rounded-xl bg-slate-100 text-sm outline-none resize-none"
               value={datos.descripcion}
-              onChange={(e) =>
-                setDatos({ ...datos, descripcion: e.target.value })
-              }
+              onChange={(e) => setDatos({ ...datos, descripcion: e.target.value })}
             />
-            <div className="grid grid-cols-2 gap-4">
-              <input
-                type="number"
-                placeholder="Puntos"
-                className="w-full p-4 rounded-xl bg-green-50 text-green-700 font-bold"
-                value={datos.costoPuntos}
-                onChange={(e) =>
-                  setDatos({ ...datos, costoPuntos: parseInt(e.target.value) })
-                }
-              />
-              <input
-                type="number"
-                placeholder="Stock"
-                className="w-full p-4 rounded-xl bg-blue-50 text-blue-700 font-bold"
-                value={datos.stock}
-                onChange={(e) =>
-                  setDatos({ ...datos, stock: parseInt(e.target.value) })
-                }
-              />
+            <div className="grid grid-cols-2 gap-3 sm:gap-4">
+              <div>
+                <label className="text-[9px] font-black uppercase text-green-700 ml-1 mb-1 block">Puntos</label>
+                <input
+                  type="number"
+                  className="w-full p-3 sm:p-4 rounded-xl bg-green-50 text-green-700 font-bold text-sm outline-none"
+                  value={datos.costoPuntos}
+                  onChange={(e) => setDatos({ ...datos, costoPuntos: parseInt(e.target.value) })}
+                />
+              </div>
+              <div>
+                <label className="text-[9px] font-black uppercase text-blue-700 ml-1 mb-1 block">Stock</label>
+                <input
+                  type="number"
+                  className="w-full p-3 sm:p-4 rounded-xl bg-blue-50 text-blue-700 font-bold text-sm outline-none"
+                  value={datos.stock}
+                  onChange={(e) => setDatos({ ...datos, stock: parseInt(e.target.value) })}
+                />
+              </div>
             </div>
             <button
               disabled={cargando}
-              className="w-full py-5 bg-slate-900 text-white rounded-2xl font-black uppercase"
+              className="w-full py-4 sm:py-5 bg-slate-900 text-white rounded-xl sm:rounded-2xl font-black uppercase text-sm active:scale-95 transition-all"
             >
               {cargando ? (
-                <Loader2 className="animate-spin mx-auto" />
-              ) : editandoId ? (
-                "Guardar Cambios"
-              ) : (
-                "Publicar Ahora"
-              )}
+                <Loader2 className="animate-spin mx-auto" size={20} />
+              ) : editandoId ? "Guardar Cambios" : "Publicar Ahora"}
             </button>
           </div>
         </form>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 px-4">
+      {/* LISTA DE PRODUCTOS */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 px-0 sm:px-4">
         {productos.map((p) => (
           <div
             key={p.id}
-            className="bg-white p-6 rounded-[2.5rem] border flex items-center justify-between group shadow-sm hover:shadow-xl transition-all"
+            className="bg-white p-4 sm:p-6 rounded-[1.8rem] sm:rounded-[2.5rem] border flex items-center justify-between group shadow-sm hover:shadow-xl transition-all"
           >
-            <div className="flex items-center gap-6 text-left">
+            <div className="flex items-center gap-4 sm:gap-6 text-left overflow-hidden">
               <img
                 src={p.imagenUrl || "https://via.placeholder.com/150"}
-                className="w-20 h-20 rounded-[1.8rem] object-cover"
+                className="w-14 h-14 sm:w-20 sm:h-20 rounded-[1.2rem] sm:rounded-[1.8rem] object-cover flex-shrink-0"
                 alt=""
               />
-              <div>
-                <h4 className="font-black uppercase text-sm">{p.nombre}</h4>
-                <p className="text-green-600 font-bold text-[10px] uppercase">
-                  {p.costoPuntos} Puntos • {p.stock} Libres
+              <div className="overflow-hidden">
+                <h4 className="font-black uppercase text-xs sm:text-sm truncate">{p.nombre}</h4>
+                <p className="text-green-600 font-bold text-[10px] uppercase mt-0.5">
+                  {p.costoPuntos} Pts · {p.stock} Libres
                 </p>
               </div>
             </div>
@@ -200,9 +184,9 @@ const GestionCatalogo = ({ alRegresar }) => {
                 setDatos(p);
                 setMostrarForm(true);
               }}
-              className="p-4 bg-slate-100 text-blue-600 rounded-2xl hover:bg-blue-600 hover:text-white transition-all opacity-0 group-hover:opacity-100"
+              className="p-3 sm:p-4 bg-slate-100 text-blue-600 rounded-xl sm:rounded-2xl hover:bg-blue-600 hover:text-white transition-all flex-shrink-0 ml-2"
             >
-              <Edit3 size={18} />
+              <Edit3 size={16} />
             </button>
           </div>
         ))}
