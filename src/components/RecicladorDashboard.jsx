@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   Wallet,
   MapPin,
@@ -7,11 +8,18 @@ import {
   ScanQrCode,
   Eye,
   Info,
+  Loader2,
+  CheckCircle,
+  XCircle,
 } from "lucide-react";
 import Mapa from "./Mapa";
+import EscaneoQR from "./EscaneoQR";
+import { toast } from "sonner"; // <--- SOLUCIÓN AL ERROR: 'toast' is not defined
 
 const RecicladorDashboard = ({ usuario, irACatalogo, irAHistorial }) => {
-  // Calculamos puntos de la misma forma industrial
+  const [scanneando, setScanneando] = useState(false);
+  const [esperandoPeso, setEsperandoPeso] = useState(false);
+
   const puntosTotales =
     usuario.historialEntrega?.reduce(
       (acc, ent) =>
@@ -19,14 +27,24 @@ const RecicladorDashboard = ({ usuario, irACatalogo, irAHistorial }) => {
       0,
     ) || 0;
 
+  // SOLUCIÓN AL ERROR: Esta función ahora se conecta con el Scanner
+  const activarSesionDePesaje = (puntoId) => {
+    setScanneando(false);
+    setEsperandoPeso(true);
+
+    toast.success("¡Estación Vinculada!", {
+      description: `Bote ID ${puntoId} listo. Deposita el plástico para procesar tus puntos.`,
+      duration: 6000,
+    });
+  };
+
   return (
-    <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in duration-700">
-      {/* --- SECCIÓN BALANCES (Estilo Nequi Disponible) --- */}
-      <div className="bg-slate-900 text-white p-6 rounded-[2rem] shadow-2xl relative overflow-hidden group">
+    <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in duration-700 pb-20">
+      {/* --- SECCIÓN BALANCES --- */}
+      <div className="bg-slate-900 text-white p-6 rounded-[2rem] shadow-2xl relative overflow-hidden group text-center border-b-8 border-green-600">
         <div className="absolute top-0 right-0 p-8 opacity-10">
           <Wallet size={120} className="rotate-12" />
         </div>
-
         <div className="relative z-10 flex flex-col items-center">
           <div className="flex items-center gap-2 text-slate-400 mb-1">
             <span className="text-[10px] font-black uppercase tracking-[0.2em]">
@@ -34,7 +52,6 @@ const RecicladorDashboard = ({ usuario, irACatalogo, irAHistorial }) => {
             </span>
             <Eye size={12} className="opacity-50" />
           </div>
-
           <div className="flex items-baseline gap-2">
             <span className="text-4xl font-black">
               {puntosTotales.toLocaleString()}
@@ -46,13 +63,13 @@ const RecicladorDashboard = ({ usuario, irACatalogo, irAHistorial }) => {
         </div>
       </div>
 
-      {/* --- GRID DE SERVICIOS (Accesos Directos) --- */}
+      {/* --- GRID DE SERVICIOS --- */}
       <div className="grid grid-cols-3 gap-4">
         <button
           onClick={irACatalogo}
           className="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm flex flex-col items-center gap-2 hover:bg-green-50 transition-all group active:scale-95"
         >
-          <div className="bg-blue-100 p-3 rounded-2xl text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all">
+          <div className="bg-blue-100 p-3 rounded-2xl text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all shadow-md">
             <Award size={20} />
           </div>
           <span className="text-[9px] font-black text-slate-500 uppercase tracking-tight">
@@ -61,10 +78,10 @@ const RecicladorDashboard = ({ usuario, irACatalogo, irAHistorial }) => {
         </button>
 
         <button
-          onClick={() => alert("Próximamente: Cámara para Scan QR 📸")}
-          className="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm flex flex-col items-center gap-2 hover:bg-green-50 transition-all group active:scale-95"
+          onClick={() => setScanneando(true)}
+          className="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm flex flex-col items-center gap-2 hover:bg-green-50 transition-all group active:scale-95 border-b-4 border-green-500"
         >
-          <div className="bg-green-100 p-3 rounded-2xl text-green-600 group-hover:bg-green-600 group-hover:text-white transition-all">
+          <div className="bg-green-100 p-3 rounded-2xl text-green-600 group-hover:bg-green-600 group-hover:text-white transition-all shadow-md">
             <ScanQrCode size={20} />
           </div>
           <span className="text-[9px] font-black text-slate-500 uppercase tracking-tight">
@@ -76,7 +93,7 @@ const RecicladorDashboard = ({ usuario, irACatalogo, irAHistorial }) => {
           onClick={irAHistorial}
           className="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm flex flex-col items-center gap-2 hover:bg-green-50 transition-all group active:scale-95"
         >
-          <div className="bg-orange-100 p-3 rounded-2xl text-orange-600 group-hover:bg-orange-600 group-hover:text-white transition-all">
+          <div className="bg-orange-100 p-3 rounded-2xl text-orange-600 group-hover:bg-orange-600 group-hover:text-white transition-all shadow-md">
             <History size={20} />
           </div>
           <span className="text-[9px] font-black text-slate-500 uppercase tracking-tight">
@@ -85,7 +102,32 @@ const RecicladorDashboard = ({ usuario, irACatalogo, irAHistorial }) => {
         </button>
       </div>
 
-      {/* --- MAPA FULL SIZE (La Joya Logística) --- */}
+      {/* --- MODAL DE ESPERA IOT (Solo aparece si escaneó con éxito) --- */}
+      {esperandoPeso && (
+        <div className="bg-blue-600 text-white p-6 rounded-[2rem] shadow-2xl flex items-center justify-between animate-in zoom-in">
+          <div className="flex items-center gap-4 text-left">
+            <div className="bg-white/20 p-4 rounded-full">
+              <Loader2 className="animate-spin text-white" size={24} />
+            </div>
+            <div>
+              <h4 className="font-black text-sm uppercase">
+                Pesaje en curso...
+              </h4>
+              <p className="text-[10px] font-bold text-blue-100">
+                Esperando respuesta del sensor Arduino.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => setEsperandoPeso(false)}
+            className="text-[10px] font-black border border-white/30 px-4 py-2 rounded-xl hover:bg-white/10 transition-all"
+          >
+            CANCELAR
+          </button>
+        </div>
+      )}
+
+      {/* --- MAPA FULL SIZE --- */}
       <div className="space-y-3">
         <div className="flex items-center justify-between px-2">
           <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
@@ -96,21 +138,27 @@ const RecicladorDashboard = ({ usuario, irACatalogo, irAHistorial }) => {
           </span>
         </div>
 
-        <div className="h-[450px] bg-white rounded-[2.5rem] shadow-2xl border-8 border-white overflow-hidden relative shadow-slate-200">
+        <div className="h-[450px] bg-white rounded-[2.5rem] shadow-2xl border-8 border-white overflow-hidden relative">
           <Mapa />
-
-          {/* Tooltip flotante dentro del mapa */}
-          <div className="absolute bottom-6 left-6 right-6 z-[1000] bg-white/80 backdrop-blur-md p-4 rounded-3xl border border-white flex items-center gap-4 animate-in slide-in-from-bottom-2">
+          <div className="absolute bottom-6 left-6 right-6 z-[1000] bg-white/80 backdrop-blur-md p-4 rounded-3xl border border-white flex items-center gap-4 shadow-xl">
             <div className="bg-slate-900 text-white p-2 rounded-xl">
               <Info size={16} />
             </div>
             <p className="text-[10px] font-bold text-slate-700 leading-tight">
-              Busca los pines azules en el mapa para encontrar puntos de
-              recolección disponibles en la ciudad.
+              Encuentra los pines azules para iniciar sesión frente al bote.
             </p>
           </div>
         </div>
       </div>
+
+      {/* COMPONENTE DE CÁMARA (Activación de la sesión) */}
+      {scanneando && (
+        <EscaneoQR
+          userId={usuario.id}
+          alCerrar={() => setScanneando(false)}
+          onSuccess={activarSesionDePesaje} // <--- Pasamos el puente lógico
+        />
+      )}
     </div>
   );
 };

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import { ArrowLeft, ShoppingBag, Package } from "lucide-react";
 import { toast } from "sonner";
@@ -7,48 +7,53 @@ const Catalogo = ({ usuario, alRegresar, alCanjeExitoso }) => {
   const [productos, setProductos] = useState([]);
   const [cargando, setCargando] = useState(false);
 
-  useEffect(() => {
-    axios
-      .get("http://localhost:8080/api/canje/catalogo")
-      .then((res) => setProductos(res.data))
-      .catch((err) => console.error("Error al cargar catálogo:", err));
+  const cargarDatos = useCallback(async () => {
+    try {
+      const res = await axios.get("http://localhost:8080/api/canje/catalogo");
+      setProductos(res.data);
+    } catch (error) {
+      console.error("Error al cargar catálogo:", error);
+    }
   }, []);
 
+  useEffect(() => {
+    cargarDatos();
+  }, [cargarDatos]);
+
   const realizarCanje = async (productoId, costo) => {
-    // 1. Validación previa de saldo
     if (usuario.saldoPuntos < costo) {
-      toast.error("Puntos Insuficientes", {
-        description: `Necesitas ${costo} pts para obtener esta maravilla.`,
+      toast.error("Saldo Insuficiente", {
+        description: "Recolecta más plástico para este premio.",
       });
       return;
     }
 
-    const direccion = window.prompt(
-      "¿A dónde enviamos tu recompensa? (Solo Popayán)",
-    );
+    const direccion = window.prompt("¿A dónde enviamos tu premio?");
     if (!direccion) return;
 
     setCargando(true);
     try {
-      // 2. Ejecución del canje (Singleton & Observer en Java)
+      // 1. Ejecutamos el canje en LOCAL
       const res = await axios.post(
         `http://localhost:8080/api/canje/realizar?userId=${usuario.id}&productoId=${productoId}&direccion=${direccion}`,
       );
 
+      // 2. AHORA SÍ el Toast tiene los datos (res.data)
       toast.success("¡Canje Exitoso!", {
         description: `Has obtenido: ${res.data.producto.nombre}`,
       });
 
-      // 3. Sincronización de Saldo (OBLIGATORIO: Usar await)
-      const usuarioRes = await axios.get(
+      // 3. Sincronizamos localmente
+      const userRes = await axios.get(
         `http://localhost:8080/api/identidad/${usuario.id}`,
       );
-      alCanjeExitoso(usuarioRes.data);
+      alCanjeExitoso(userRes.data);
+      cargarDatos();
     } catch (err) {
-      // SOLUCIÓN AL ERROR DE TU IMAGEN: Usamos 'err' para que el Linter no marque error
-      console.error("Fallo técnico en canje:", err);
-      toast.error("Fallo en la reserva", {
-        description: "El stock podría haberse agotado justo ahora.",
+      // Usamos el log para que el Linter de VS Code no de error de variable no usada
+      console.error("Detalle técnico del canje:", err);
+      toast.error("Error en la reserva", {
+        description: "Stock insuficiente o falla de red.",
       });
     } finally {
       setCargando(false);
@@ -56,83 +61,72 @@ const Catalogo = ({ usuario, alRegresar, alCanjeExitoso }) => {
   };
 
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="flex items-center gap-4 mb-10">
+    // ... tu JSX del catálogo se mantiene igual ...
+    <div className="animate-in fade-in slide-in-from-bottom-8 duration-700">
+      {/* Botón Volver y Header */}
+      <div className="flex items-center gap-6 mb-12 text-left text-slate-900">
         <button
           onClick={alRegresar}
-          className="p-3 bg-white hover:bg-slate-50 border border-slate-200 rounded-2xl transition-all shadow-sm group"
+          className="p-4 bg-white hover:bg-slate-900 hover:text-white rounded-2xl shadow-sm border border-slate-100 transition-all"
         >
-          <ArrowLeft className="group-hover:-translate-x-1 transition-transform" />
+          <ArrowLeft />
         </button>
         <div>
-          <h2 className="text-4xl font-black text-slate-800 tracking-tighter uppercase leading-none">
-            Maravillas Disponibles
+          <h2 className="text-4xl font-black uppercase tracking-tighter leading-none text-slate-800">
+            Canjear Maravillas
           </h2>
-          <p className="text-green-600 font-bold text-sm tracking-widest mt-1">
-            Popayán | Canje de Puntos Eco
+          <p className="text-green-600 font-bold text-sm tracking-widest mt-1 uppercase">
+            Puntos disponibles para Popayán
           </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 text-left">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
         {productos.map((p) => (
           <div
             key={p.id}
-            className="bg-white rounded-[2.5rem] shadow-xl border border-slate-100 overflow-hidden hover:shadow-2xl hover:-translate-y-1 transition-all group flex flex-col h-full"
+            className="bg-white rounded-[3rem] shadow-xl border border-slate-50 flex flex-col group transition-all hover:scale-105 overflow-hidden"
           >
-            <div className="h-52 bg-slate-100 relative overflow-hidden">
+            <div className="h-56 bg-slate-50 relative overflow-hidden">
               <img
-                src={
-                  p.imagenUrl ||
-                  "https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?q=80&w=300"
-                }
+                src={p.imagenUrl || "https://via.placeholder.com/300"}
                 alt={p.nombre}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                className="w-full h-full object-cover transition-transform group-hover:scale-110"
               />
-              <div className="absolute top-4 right-4 bg-green-600 px-3 py-1 rounded-full text-white text-[9px] font-black uppercase tracking-tighter shadow-lg">
-                Disponible
-              </div>
             </div>
-
-            <div className="p-8 flex flex-col flex-grow">
-              <h4 className="text-2xl font-black text-slate-800 leading-none mb-2 uppercase">
+            <div className="p-8 text-left flex flex-col flex-grow">
+              <h4 className="text-2xl font-black text-slate-800 uppercase italic mb-3">
                 {p.nombre}
               </h4>
-              <p className="text-slate-400 text-xs font-bold mb-6 flex-grow uppercase tracking-tight">
+              <p className="text-slate-400 text-[10px] font-bold uppercase mb-8 flex-grow leading-relaxed">
                 {p.descripcion}
               </p>
-
-              <div className="flex justify-between items-center mb-6 pt-4 border-t border-slate-50">
-                <div className="flex flex-col">
-                  <span className="text-2xl font-black text-green-600 leading-none">
+              <div className="flex justify-between items-center mb-8 border-t pt-4">
+                <div>
+                  <span className="text-3xl font-black text-slate-800">
                     {p.costoPuntos}
                   </span>
-                  <span className="text-[10px] font-black text-slate-400 uppercase">
-                    Pts Necesarios
+                  <span className="text-[10px] font-black text-green-600 uppercase ml-1">
+                    Pts
                   </span>
                 </div>
-                <div className="bg-slate-50 px-3 py-2 rounded-xl flex items-center gap-2 text-slate-500 border border-slate-100">
-                  <Package size={12} />
-                  <span className="text-[10px] font-black uppercase">
+                <div className="flex items-center gap-1.5 text-slate-300">
+                  <Package size={14} />
+                  <span className="text-[10px] font-black">
                     Stock: {p.stock}
                   </span>
                 </div>
               </div>
-
               <button
                 onClick={() => realizarCanje(p.id, p.costoPuntos)}
                 disabled={p.stock <= 0 || cargando}
-                className={`w-full py-4 rounded-2xl font-black text-sm flex justify-center items-center gap-3 transition-all active:scale-95 ${
-                  p.stock > 0 && !cargando
-                    ? "bg-slate-900 text-white hover:bg-black shadow-lg shadow-slate-200"
-                    : "bg-slate-100 text-slate-400 cursor-not-allowed"
-                }`}
+                className={`w-full py-5 rounded-[2rem] font-black text-xs uppercase flex justify-center items-center gap-3 transition-all ${p.stock > 0 ? "bg-slate-900 text-white hover:bg-black" : "bg-slate-50 text-slate-300 cursor-not-allowed"}`}
               >
                 <ShoppingBag size={18} />
                 {p.stock > 0
                   ? cargando
-                    ? "RESERVANDO..."
-                    : "CANJEAR AHORA"
+                    ? "PROCESANDO..."
+                    : "LO QUIERO"
                   : "AGOTADO"}
               </button>
             </div>
